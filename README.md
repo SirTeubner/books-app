@@ -143,4 +143,68 @@ Mittels `php artisan migrate` wird die Migration der Datenbank (in diesem Fall d
 
 >**Achtung:** Eine bereits durchgeführte Migration (zB 2025_11_25_115206_create_books_table) darf nicht mehr verändert werden. Für Veränderungen muss eine neue Migration erstellt werden.
 
+In diesem Beispiel wird eine Sqlite-Datenbank namens `dateabase.sqlite` im `database`-Ordner angelegt und kann in PhpStorm per Drag & Drop eingebunden werden.
 
+Die Datenbank beinhaltet eine Tabelle namens `books` mit den lt. Migration angegebenen Spalten:
+
+![Tabelle](assets/database.png)
+
+## Demo-Daten
+
+Um bereits bei der Entwicklung über Daten zu verfügen, werden Demo-Daten mit sogenannten `Seeders` hinzugefügt.
+
+```
+php artisan make:seeder BookSeeder
+```
+
+Dieser Befehl erstellt einen `BookSeeder`-Seeder in `database/seeders/`, welcher in DatabaseSeeder (als Ausgangspunkt) hinzugefügt werden muss. Der DatabaseSeeder ruft mehrere Seeders automatisch auf.
+
+In der `run`-Methode des DatabaseSeeders wird ein Benutzer erstellt und der Seeder mittels `call` aufgerufen.
+
+```php
+public function run(): void
+    {
+        // User erstellen
+        User::factory()->create([
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.org',
+            'password' => Hash::make('john.doe@example.org'),
+        ]);
+
+        $this->call([
+            BookSeeder::class,
+        ]);
+    }
+```
+
+> **Achtung:** Der Befehl `php artisan migrate:fresh` darf **niemals** in einem Produktivsystem ausgeführt werden - dies würde alle Daten löschen!
+
+
+Um die Datenbank neu zu erstellen und die Demodaten hinzuzufügen, wird folgender Befehl aufgerufen:
+
+```
+php artisan migrate:fresh --seed
+```
+
+> **Hinweis:** Da der BookSeeder derzeit noch keinen Inhalt aufweist, wurde die Tabelle noch nicht befüllt.
+
+Im BookSeeder wird daher die `run`-Methode entsprechend angepasst und mithilfe der Model-Klasse `Book` zwei Bücher erstellt (statische Methode create). `id` und `timestamps` werden automatisch ermittelt.
+
+```
+public function run(): void
+    {
+        Book::create([
+            'title' => 'Book 1',
+            'isbn' => '9-7234-234-234',
+            'pages' => 312
+        ]);
+
+        Book::create([
+            'title' => 'Book 2',
+            'isbn' => '8-7234-234-234',
+            'pages' => 400
+        ]);
+    }
+```
+
+Nach einem erneuten Aufruf von `php artisan migrate --seed` werden die Daten in der `books`-Tabelle angezeigt.
