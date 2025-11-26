@@ -10,6 +10,14 @@ laravel new books-app
 
 Die weitere Arbeit erfolgt in PHPStorm. Bei der Bearbeitung wird `npm run dev` verwendet. Dadurch werden die Stile (css, js, ...) korrekt angezeigt.
 
+## Konfiguration
+
+Laravel wird in einer Datei namens `.env` konfiguriert. Diese Datei muss besonders geschützt werden, da sie auch Zugangsdaten beinhaltet. Die Speicherung darf nicht in einem Repository erfolgen.
+
+Ein Key (`APP_KEY`) kann mittels `php artisan key:generate` erstellt werden. Standardmäßig wird die `.env`-Datei mittels `gitignore`-Datei ignoriert.
+
+In der `.env`-Datei befindet sich auch der Zugang zur Datenbank. Standardmäßig wird mit `Sqlite` gearbeitet. Wird auf eine andere DB umgestellt, so muss der Konfigurationseintrag `DB_CONNECTION` entsprechend angepasst werden (zB mysql inkl. Benuterdaten). Nach `php artisan migrate` werden alle Tabellen lt. Migration erstellt.
+
 ## API-Installation
 
 Um eine API verwenden zu können, muss folgender Befehl ausgeführt werden:
@@ -134,4 +142,5 @@ public function down(): void
 Mittels `php artisan migrate` wird die Migration der Datenbank (in diesem Fall die Tabelle erstellt) durchgeführt und mittels `php artisan migrate:rollback` kann die Migration wieder rückgängig gemacht werden.
 
 >**Achtung:** Eine bereits durchgeführte Migration (zB 2025_11_25_115206_create_books_table) darf nicht mehr verändert werden. Für Veränderungen muss eine neue Migration erstellt werden.
+
 
