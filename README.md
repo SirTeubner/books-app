@@ -340,5 +340,5 @@ Mit zB `@if` kann auch eine Verzweigung durchgeführt werden. Zum Beispiel könn
 @endforeach
 ```
 
-Aus Performance-Gründen, würde diese Abfrage aber eher im Controller durchgeführt werden (`where`).S
+Aus Performance-Gründen, würde diese Abfrage aber eher im Controller durchgeführt werden (`where`).
 
