@@ -208,3 +208,137 @@ public function run(): void
 ```
 
 Nach einem erneuten Aufruf von `php artisan migrate --seed` werden die Daten in der `books`-Tabelle angezeigt.
+
+## Konfigurationsdaten auslesen
+
+Um die Konfiguration lt. `.env` auszulesen, muss die Funktion `config` verwendet werden.
+
+```php
+<title>{{ config('app.name', 'Laravel') }}</title>
+```
+
+Im obigen Beispiel ist ersichtlich, dass die Konfiguration `APP_NAME` ausgelesen wird und falls diese nicht verfügbar ist, wird der Wert `Laravel` verwendet. Es können in der `.env`-Datei auch eigenen Variablen erstellt werden.
+
+## Mehrere Sprachen unterstützen
+
+In einer Blade-Datei können mti folgendem Code mehrere Sprachen unterstützt werden:
+
+
+```bladehtml
+{{ __('List') }}
+```
+
+Der Wert `List` wird als "fallbackvalue" in EN geschrieben. In *views* wird ein Ordner namens "lang" erstellt. Dieser beinhaltet eine `json`-Datei namens `de.json`. In dieser Datei werden die angegebenen Werte übersetzt.
+
+In der `.env`-Datei werden die entsprechenden Spracheinstellungen festgelegt:
+
+```dotenv
+APP_LOCALE=de
+APP_FALLBACK_LOCALE=en
+```
+
+Deutsch wird als lokale Sprache festgelegt - EN als "fall back".
+
+## Routes
+
+Ausgangspunkt für einen Seitenaufruf ist immer die `web.php`. In dieser Datei werden die Routes festgelegt.
+
+Im folgenden Beispiel wird eine Route für die Buchliste festgelegt und mittels auth-Middleware geschützt. Es können also nur angemeldete Benutzer auf die Buchliste zugreifen. Der Name für die Route wird auf `list` festgelegt.
+
+>**Hinweis:** Werden Namen verwendet, so können die URLs bei Bedarf einfach angepasst werden, ohne den HTML-COde zu verändern.
+
+Innerhalb `view` wird in diesem Beispiel `list`angegeben, das bedeutet, dass eine list.blade.php-Datei innerhalb des views-Ordners gesucht wird.Wäre ein Unterordner vorhanden, so müsste man `unterordner.list` angeben.
+
+```php
+Route::get('/list', function (){
+    return view('list');
+})->middleware(['auth'])->name('list');
+```
+
+Die neue Route kann in der Navigation (navigation.blade.php) folgendermaßen verwendet werden:
+
+```bladehtml
+<!-- navigation link -->
+<x-nav-link :href="route('list')" :active="request()->routeIs('list')">
+    {{ __('List') }}
+</x-nav-link>
+
+<!-- hamburger link -->
+ <x-responsive-nav-link :href="route('list')" :active="request()->routeIs('list')">
+     {{ __('List') }}
+ </x-responsive-nav-link>
+```
+
+Die Verwendung einer `function()` innerhalb der `web.php` kann für schnelle Veränderungen bzw. "kleine" Webseiten verwendet werden. Bei umfangreicheren Seiten sollte die Route-Behandlung in einen Controller ausgelagert werden.
+
+## Routes und Controller verbinden
+
+Ein Controller wird mittels `php artisan make:controller BookController` erstellt. Dadurch wird in `app\http\Controller` eine Datei namens `BookController.php` erstellt. Controller werden in der Einzahl erstellt.
+
+Die Verbindung erfolgt folgendermaßen:
+
+```php
+Route::get('/list', [BookController::class, 'listBooks'])->middleware(['auth'])->name('list');
+```
+
+Mittels `GET` kann `/list` aufgerufen werden und es wird die Methode `list()` im BookController verwendet.
+
+Möchte man nur `BookController` schreiben, so muss der Namespace mit `use` oben hinzugefügt werden.
+
+```php
+use App\Http\Controllers\BookController;
+```
+
+>**Tipp:** Mit einem Rechtsklick kann dies via `Context Actions` rasch erledigt werden.
+
+![Show Context Actions](assets/context-actions.png)
+
+Im BookController werden nun innerhalb der Funktion `listBooks` alle Bücher ausgelesen.
+
+>**Achtung:** Bei Book muss natürlich deer Namespace `App\Models\Book` mit `use` hinzugefügt werden.
+
+```
+ public function listBooks(): View
+    {
+        // Abfrage mit model class Book
+        $books = Book::all();
+
+        return view('list', [
+            'books' => $books
+        ]);
+    }
+```
+
+An die `View` wird nun ein Array mit den Daten aus dem Model gesendet. Die View kann mit dem Namen `mybooks` auf diese Daten zugreifen.
+
+
+## View
+
+In der View wird auf `$books` folgendermaßen zugegriffen:
+
+```bladehtml
+<h2 class="text-lg md:text-xl lg:text-2xl">{{__('Books') }}</h2>
+
+@foreach($books as $book)
+    <div>
+        {{ $book->isbn }} - {{ $book->title }}
+    </div>
+@endforeach
+```
+
+In der `foreach`-Schleife wird jedes Buchelement als `$book` behandelt und innerhalb der Schleife wird auf die einzelnen `Book`-Models zugegriffen. Es sind die meisten attribute der Tabelle verfügbar.
+
+Mit zB `@if` kann auch eine Verzweigung durchgeführt werden. Zum Beispiel könnten nur Bücher mit mehr als 350 Seiten angezeigt werden:
+
+```bladehtml
+@foreach($books as $book)
+    @if ($book->pages>350)
+        <div>
+            {{ $book->isbn }} - {{ $book->title }}
+        </div>
+    @endif
+@endforeach
+```
+
+Aus Performance-Gründen, würde diese Abfrage aber eher im Controller durchgeführt werden (`where`).S
+
